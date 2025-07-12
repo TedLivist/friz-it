@@ -24,5 +24,13 @@ contract Savings {
     _;
   }
 
-  
+  receive() external payable {}
+
+  function withdrawBalance() public onlyOwner {
+    require(block.timestamp > deadline, "Cannot withdraw before deadline");
+    require(address(this).balance > 0, "Balance is empty");
+    (bool s, ) = address(recipientAddress).call{ value: address(this).balance }("");
+    require(s);
+  }
+
 }
