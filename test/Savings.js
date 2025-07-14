@@ -30,9 +30,6 @@ describe('Savings', () => {
 
     await contract.waitForDeployment()
 
-    // console.log("ETH BAL", await ethers.provider.getBalance(deployer))
-    // console.log("Contract BAL", ethers.formatEther(await ethers.provider.getBalance(contract)))
-
     return {
       deployer, token, secondUser,
       contract, deadlineDate
@@ -51,23 +48,15 @@ describe('Savings', () => {
     it("only owner can withdraw", async function() {
       const { contract, secondUser } = await loadFixture(deployContractAndVariables)
   
-      try {
-        await contract.connect(secondUser).withdrawBalance();
-        assert.fail("Transaction should have reverted");
-      } catch (error) {
-        expect(error.message).to.include("Only owner can perform this function");
-      }
+      await expect(contract.connect(secondUser).withdrawBalance())
+        .to.be.revertedWith("Only owner can perform this function")
     })
   
     it("withdrawal cannot be made before deadline", async function() {
       const { contract } = await loadFixture(deployContractAndVariables)
   
-      try {
-        await contract.withdrawBalance();
-        assert.fail("Transaction should have reverted");
-      } catch (error) {
-        expect(error.message).to.include("Cannot withdraw before deadline");
-      }
+      await expect(contract.withdrawBalance())
+        .to.be.rejectedWith("Cannot withdraw before deadline")
     })
   
     it("transfers balance to the recipient's address", async function() {
