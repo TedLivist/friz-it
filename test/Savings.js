@@ -83,7 +83,9 @@ describe('Savings', () => {
     const updatedRecipientBalance = ethers.formatEther(await ethers.provider.getBalance(secondUser.address))
     const updatedContractBalance = ethers.formatEther(await ethers.provider.getBalance(contract.getAddress()))
 
-    console.log('New recipient balance', updatedRecipientBalance)
-    console.log('New contract balance', updatedContractBalance)
+    expect(Number(updatedRecipientBalance)).to.equal(Number(initialRecipientBalance) + Number(initialContractBalance))
+    expect(Number(updatedContractBalance)).to.equal(0)
   })
+
+  
 })

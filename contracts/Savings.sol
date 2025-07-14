@@ -33,4 +33,9 @@ contract Savings {
     require(s);
   }
 
+  function adjustDeadline(uint256 _newDeadline) public onlyOwner {
+    require(deadline < _newDeadline, "Newer deadline must be later than existing deadline")
+    
+  }
+
 }
