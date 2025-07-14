@@ -36,7 +36,7 @@ contract Savings {
 
   function adjustDeadline(uint256 _newDeadline) public onlyOwner {
     require(deadline < _newDeadline, "Deadline must be later than existing deadline");
-    require(deadlineAdjustmentCount <= 2, "Deadline cannot be changed more than twice");
+    require(deadlineAdjustmentCount < 2, "Deadline cannot be changed more than twice");
     deadline = _newDeadline;
     deadlineAdjustmentCount++;
   }

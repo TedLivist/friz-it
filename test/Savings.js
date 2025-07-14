@@ -119,7 +119,7 @@ describe('Savings', () => {
 
       const oldContractDeadline = Number(await contract.deadline())
       
-      // existing deadline is different from newer deadline
+      // existing deadline is different from proposed deadline
       expect(oldContractDeadline).to.not.equal(newDeadline)
 
       await contract.adjustDeadline(newDeadline)
@@ -127,6 +127,27 @@ describe('Savings', () => {
 
       // existing deadline is now same as proposed deadline 
       expect(contractDeadline).to.equal(newDeadline)
+    })
+
+    it('deadline cannot be changed more than twice', async function() {
+      const { contract } = await loadFixture(deployContractAndVariables)
+
+       const date = Date.now()
+      // try changing to 4 months, instead of existing 3 months
+      let deadlineInMilliseconds = ((60 * 60 * 24 * 30 * 4) * 1000)
+      const deadline1 = Math.floor((date + (deadlineInMilliseconds)) / 1000)
+      await expect(contract.adjustDeadline(deadline1))
+        .to.not.be.reverted
+
+      deadlineInMilliseconds = ((60 * 60 * 24 * 30 * 5) * 1000)
+      const deadline2 = Math.floor((date + (deadlineInMilliseconds)) / 1000)
+      await expect(contract.adjustDeadline(deadline2))
+        .to.not.be.reverted
+
+      deadlineInMilliseconds = ((60 * 60 * 24 * 30 * 6) * 1000)
+      const deadline3 = Math.floor((date + (deadlineInMilliseconds)) / 1000)
+      await expect(contract.adjustDeadline(deadline3))
+        .to.be.revertedWith('Deadline cannot be changed more than twice')
     })
   })
 })
