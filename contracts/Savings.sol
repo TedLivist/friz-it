@@ -9,6 +9,7 @@ contract Savings {
   uint256 public deadline;
   address public recipientAddress;
   address public owner;
+  uint256 private deadlineAdjustmentCount = 0;
 
   constructor(uint256 _deadline, address _recipientAddress, address _owner) payable {
     require(msg.value >= 0.01 ether, "Must deploy with at least 0.01 ETH");
@@ -35,7 +36,9 @@ contract Savings {
 
   function adjustDeadline(uint256 _newDeadline) public onlyOwner {
     require(deadline < _newDeadline, "Deadline must be later than existing deadline");
-
+    require(deadlineAdjustmentCount <= 2, "Deadline cannot be changed more than twice");
+    deadline = _newDeadline;
+    deadlineAdjustmentCount++;
   }
 
 }

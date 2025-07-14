@@ -108,7 +108,25 @@ describe('Savings', () => {
       await expect(contract.adjustDeadline(deadlineDate))
         .to.be.revertedWith('Deadline must be later than existing deadline')
     })
-
     
+    it("sets the deadline when it's later than existing one", async function() {
+      const { contract } = await loadFixture(deployContractAndVariables)
+
+      const date = Date.now()
+      // try changing to 4 months, instead of existing 3 months
+      const deadlineInMilliseconds = ((60 * 60 * 24 * 30 * 4) * 1000)
+      const newDeadline = Math.floor((date + (deadlineInMilliseconds)) / 1000)
+
+      const oldContractDeadline = Number(await contract.deadline())
+      
+      // existing deadline is different from newer deadline
+      expect(oldContractDeadline).to.not.equal(newDeadline)
+
+      await contract.adjustDeadline(newDeadline)
+      const contractDeadline = Number(await contract.deadline())
+
+      // existing deadline is now same as proposed deadline 
+      expect(contractDeadline).to.equal(newDeadline)
+    })
   })
 })
