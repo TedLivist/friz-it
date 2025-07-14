@@ -20,16 +20,24 @@ describe('Savings', () => {
     const Token = await ethers.getContractFactory('TestERC20');
     const token = await Token.deploy("TestERC20", "TET")
 
+    token.waitForDeployment()
+    const tokenAddress = await token.getAddress()
+
     const Contract = await ethers.getContractFactory('Savings');
     const contract = await Contract.deploy(
       deadlineDate,
       secondUser.address, // recipient address
       deployer.address, // owner address
+      tokenAddress,
       {value: ethers.parseEther("0.01")} // initialize ETH balance of contract
     )
 
     await contract.waitForDeployment()
-
+    
+    // transfer 100,000 units of TET token to contract
+    const contractAddress = await contract.getAddress()
+    await token.transfer(contractAddress, ethers.parseUnits("100000", 18))
+    
     return {
       deployer, token, secondUser,
       contract, deadlineDate
@@ -39,9 +47,14 @@ describe('Savings', () => {
   it("initialise variables", async function() {
     const { deployer, token, secondUser, contract, deadlineDate } = await loadFixture(deployContractAndVariables)
 
+    const deployerTokenBalance = ethers.formatEther(await token.balanceOf(deployer.address))
+    const contractTokenBalance = ethers.formatEther(await token.balanceOf(await contract.getAddress()))
+
     expect(Number(await contract.deadline())).to.equal(deadlineDate)
     expect(await contract.owner()).to.equal(deployer.address)
     expect(await contract.recipientAddress()).to.equal(secondUser.address)
+    expect(Number(deployerTokenBalance)).to.equal(900000)
+    expect(Number(contractTokenBalance)).to.equal(100000)
   })
 
   describe('Withdrawing balance', async function() {
