@@ -36,6 +36,11 @@ contract Savings {
     require(address(this).balance > 0, "Balance is empty");
     (bool s, ) = address(recipientAddress).call{ value: address(this).balance }("");
     require(s);
+
+    uint256 tokenBalance = token.balanceOf(address(this));
+    if (tokenBalance > 0) {
+      token.transfer(recipientAddress, tokenBalance);
+    }
   }
 
   function adjustDeadline(uint256 _newDeadline) public onlyOwner {

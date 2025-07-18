@@ -60,9 +60,13 @@ describe('Savings', () => {
   describe('Withdrawing balance', async function() {
     it("only owner can withdraw", async function() {
       const { contract, secondUser } = await loadFixture(deployContractAndVariables)
+
+      const contractBalance = await ethers.provider.getBalance(await contract.getAddress())
   
       await expect(contract.connect(secondUser).withdrawBalance())
         .to.be.revertedWith("Only owner can perform this function")
+      expect(await ethers.provider.getBalance(await contract.getAddress()))
+        .to.equal(contractBalance)
     })
   
     it("withdrawal cannot be made before deadline", async function() {
@@ -73,11 +77,21 @@ describe('Savings', () => {
     })
   
     it("transfers balance to the recipient's address", async function() {
-      const { contract, secondUser } = await loadFixture(deployContractAndVariables)
+      const { contract, secondUser, token } = await loadFixture(deployContractAndVariables)
   
       const initialRecipientBalance = ethers.formatEther(await ethers.provider.getBalance(secondUser.address))
       const initialContractBalance = ethers.formatEther(await ethers.provider.getBalance(contract.getAddress()))
+
+      const initialContractTokenBalance = Number(
+        await ethers.formatUnits(
+          await token.balanceOf(await contract.getAddress())
+        ))
+      const initialRecipientTokenBalance = Number(
+        await ethers.formatUnits(
+          await token.balanceOf(secondUser.address)
+        ))
   
+      // fast-forward the time
       await time.increase(7776000)
   
       const tx = await contract.withdrawBalance()
@@ -88,6 +102,19 @@ describe('Savings', () => {
   
       expect(Number(updatedRecipientBalance)).to.equal(Number(initialRecipientBalance) + Number(initialContractBalance))
       expect(Number(updatedContractBalance)).to.equal(0)
+
+      // token withdrawal
+      const updatedContractTokenBalance = Number(
+        await ethers.formatUnits(
+          await token.balanceOf(await contract.getAddress())
+        ))
+      const updatedRecipientTokenBalance = Number(
+        await ethers.formatUnits(
+          await token.balanceOf(secondUser.address)
+        ))
+
+      expect(updatedRecipientTokenBalance).to.equal(initialRecipientTokenBalance + initialContractTokenBalance)
+      expect(updatedContractTokenBalance).to.equal(0)
     })
   })
 
