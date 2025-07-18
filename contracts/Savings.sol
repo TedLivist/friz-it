@@ -15,9 +15,17 @@ contract Savings is ReentrancyGuard {
 
   IERC20 public token;
 
+  event Withdrawn(address indexed recipient, uint256 ethAmount, uint256 tokenAmount);
+  event DeadlineAdjusted(uint256 newDeadline);
+
   constructor(uint256 _deadline, address _recipientAddress, address _owner, address tokenAddress) payable {
     require(msg.value >= 0.01 ether, "Must deploy with at least 0.01 ETH");
     require(block.timestamp < _deadline, "Deadline must be in the future");
+    require(
+      _recipientAddress != address(0) &&
+      _owner != address(0) &&
+      tokenAddress != address(0)
+    );
 
     deadline = _deadline;
     recipientAddress = _recipientAddress;
@@ -47,6 +55,8 @@ contract Savings is ReentrancyGuard {
     if (tokenBalance > 0) {
       token.safeTransfer(recipientAddress, tokenBalance);
     }
+
+    emit Withdrawn(recipientAddress, balance, tokenBalance);
   }
 
   function adjustDeadline(uint256 _newDeadline) public onlyOwner {
@@ -55,6 +65,8 @@ contract Savings is ReentrancyGuard {
     require(deadlineAdjustmentCount < 2, "Deadline cannot be changed more than twice");
     deadline = _newDeadline;
     deadlineAdjustmentCount++;
+
+    emit DeadlineAdjusted(_newDeadline);
   }
 
 }
