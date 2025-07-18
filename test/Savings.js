@@ -78,7 +78,7 @@ describe('Savings', () => {
   
     it("transfers balance to the recipient's address", async function() {
       const { contract, secondUser, token } = await loadFixture(deployContractAndVariables)
-  
+
       const initialRecipientBalance = ethers.formatEther(await ethers.provider.getBalance(secondUser.address))
       const initialContractBalance = ethers.formatEther(await ethers.provider.getBalance(contract.getAddress()))
 
@@ -93,7 +93,7 @@ describe('Savings', () => {
   
       // fast-forward the time
       await time.increase(7776000)
-  
+
       const tx = await contract.withdrawBalance()
       tx.wait()
   

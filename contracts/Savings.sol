@@ -3,9 +3,11 @@ pragma solidity ^0.8.28;
 
 // Uncomment this line to use console.log
 import "hardhat/console.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+using SafeERC20 for IERC20;
 
-contract Savings {
+contract Savings is ReentrancyGuard {
   uint256 public deadline;
   address public recipientAddress;
   address public owner;
@@ -31,15 +33,19 @@ contract Savings {
 
   receive() external payable {}
 
-  function withdrawBalance() public onlyOwner {
+  function withdrawBalance() public onlyOwner nonReentrant {
     require(block.timestamp > deadline, "Cannot withdraw before deadline");
     require(address(this).balance > 0, "Balance is empty");
-    (bool s, ) = address(recipientAddress).call{ value: address(this).balance }("");
-    require(s);
+    
+    //reentrancy fix
+    // another trick is to ensure no state changes occur after ".call"
+    uint256 balance = address(this).balance;
+    (bool s, ) = address(recipientAddress).call{ value: balance }("");
+    require(s, "ETH Balance failed");
 
     uint256 tokenBalance = token.balanceOf(address(this));
     if (tokenBalance > 0) {
-      token.transfer(recipientAddress, tokenBalance);
+      token.safeTransfer(recipientAddress, tokenBalance);
     }
   }
 
