@@ -50,6 +50,7 @@ contract Savings is ReentrancyGuard {
   }
 
   function adjustDeadline(uint256 _newDeadline) public onlyOwner {
+    require(_newDeadline < block.timestamp + 365 days, "New deadline cannot be upto one year");
     require(deadline < _newDeadline, "Deadline must be later than existing deadline");
     require(deadlineAdjustmentCount < 2, "Deadline cannot be changed more than twice");
     deadline = _newDeadline;
